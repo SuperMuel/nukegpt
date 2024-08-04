@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "nukegpt"
+version = "0.1.0"
+description = ""
+authors = ["Samuel Mallet  <69467005+SuperMuel@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+streamlit = "^1.37.0"
+langchain = "^0.2.12"
+langchain-openai = "^0.1.20"
+langchain-anthropic = "^0.1.22"
+langchain-groq = "^0.1.9"
+langchain-community = "^0.2.11"
+pydantic-settings = "^2.4.0"
+pydantic = "^2.8.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
