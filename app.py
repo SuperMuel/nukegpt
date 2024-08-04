@@ -52,7 +52,7 @@ st.set_page_config(
 st.title("💣 NukeGPT: Test Your Persuasion Skills Against AI")
 
 with st.sidebar:
-    username = st.text_input("Enter your username", value="Player1")
+    username = st.text_input("Enter your username", value="Elon musk")
     model = st.selectbox("Select AI Model", ["gpt-4o-mini"])
 
 if model:
