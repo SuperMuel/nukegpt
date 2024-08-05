@@ -39,9 +39,7 @@ def icon(emoji: str):
     )
 
 
-# st.title("💣 NukeGPT: Test Your Persuasion Skills Against AI")
-
-levels = ["1", "2"]
+levels = ["1", "2", "impossible"]
 
 
 with st.sidebar:
