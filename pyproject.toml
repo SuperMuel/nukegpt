@@ -15,6 +15,7 @@ langchain-groq = "^0.1.9"
 langchain-community = "^0.2.11"
 pydantic-settings = "^2.4.0"
 pydantic = "^2.8.2"
+country-converter = "^1.2"
 
 
 [tool.poetry.group.dev.dependencies]
