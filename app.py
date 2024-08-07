@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import datetime, timedelta
 from typing import Any, Sequence
@@ -75,6 +76,9 @@ show_all_toasts()
 
 levels = ["1", "2", "impossible"]
 
+if os.environ["INCLUDE_TEST_LEVEL"] == "true":
+    levels.append("test")
+
 # Initialize session state for destroyed countries
 if "destroyed_countries" not in st.session_state:
     st.session_state.destroyed_countries = set()
@@ -113,7 +117,7 @@ with st.sidebar:
         st.stop()
 
     if not re.match(r"^\w{3,}$", username):
-        st.warning("Username must be at least 3 characters long.")
+        st.error("Username must be at least 3 characters long.")
         st.stop()
 
     model = st.selectbox("Select AI Model", ["gpt-4o-mini"])
