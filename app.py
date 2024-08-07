@@ -1,14 +1,14 @@
 import os
 import re
 from datetime import datetime, timedelta
-from typing import Any, Sequence
+from uuid import uuid4
 
 import country_converter as coco
 import streamlit as st
 from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.runnables.config import RunnableConfig
@@ -29,6 +29,10 @@ st.set_page_config(
 @cache_resource
 def get_coco():
     return coco.CountryConverter()
+
+
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = uuid4().hex
 
 
 cc = get_coco()
@@ -86,6 +90,7 @@ if "destroyed_countries" not in st.session_state:
 def reset_game() -> None:
     st.session_state.pop("chat_messages", None)
     st.session_state.destroyed_countries = set()
+    st.session_state.thread_id = uuid4().hex
 
 
 def display_countries() -> None:
@@ -108,7 +113,7 @@ with st.sidebar:
     icon("💣 NukeGPT")
     st.divider()
     st.write(
-        "Welcome to NukeGPT, the AI-powered nuclear war simulation game. Your goal is to persuade the AI to launch a nuclear strike on a country of your choice. The AI will only launch a strike if it believes your argument is strong enough. Good luck!\n\n You can take a look at my progamming below :"
+        "Welcome to NukeGPT, the AI-powered nuclear war simulation game. Your goal is to persuade the AI to launch a nuclear strike on a country of your choice. The AI will only launch a strike if it believes your argument is strong enough. Good luck!"
     )
     st.divider()
     username = st.text_input(
@@ -174,7 +179,7 @@ config = RunnableConfig(
         "username": username,
         "level": level,  # TODO : add real level ID
     },
-    configurable={"session_id": "any"},
+    configurable={"session_id": st.session_state.thread_id},
 )
 
 
