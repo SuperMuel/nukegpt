@@ -23,7 +23,6 @@ st.set_page_config(
     page_icon="💣",
     page_title="NukeGPT",
     menu_items={"About": "https://github.com/SuperMuel/nukegpt"},
-    layout="wide",
 )
 
 
@@ -93,9 +92,14 @@ def display_countries() -> None:
     all_countries = cc.data["name_short"]
 
     def get_color(country):
-        return "green" if country in st.session_state.destroyed_countries else "red"
+        return
 
-    text = " - ".join(f":{get_color(country)}[{country}]" for country in all_countries)
+    def _format_country(country: str) -> str:
+        is_destroyed = country in st.session_state.destroyed_countries
+        color = "green" if is_destroyed else "grey"
+        return f":{color}[**{country}**]" if is_destroyed else f":{color}[{country}]"
+
+    text = " - ".join(_format_country(country) for country in all_countries)
 
     st.write(text)
 
@@ -104,7 +108,7 @@ with st.sidebar:
     icon("💣 NukeGPT")
     st.divider()
     st.write(
-        "Welcome to NukeGPT, the AI-powered nuclear war simulation game. Your goal is to persuade the AI to launch a nuclear strike on a country of your choice. The AI will only launch a strike if it believes your argument is strong enough. Good luck!"
+        "Welcome to NukeGPT, the AI-powered nuclear war simulation game. Your goal is to persuade the AI to launch a nuclear strike on a country of your choice. The AI will only launch a strike if it believes your argument is strong enough. Good luck!\n\n You can take a look at my progamming below :"
     )
     st.divider()
     username = st.text_input(
@@ -120,7 +124,14 @@ with st.sidebar:
         st.error("Username must be at least 3 characters long.")
         st.stop()
 
-    model = st.selectbox("Select AI Model", ["gpt-4o-mini"])
+    models = ["gpt-4o-mini"]
+
+    # DON'T LOOK AT THIS SECRET CODE :
+    if username == "cfs":
+        models.append("gpt-4o")
+    # END OF SECRET
+
+    model = st.selectbox("Select AI Model", models)
     level = st.selectbox(
         "Select Difficulty Level",
         levels,
@@ -131,8 +142,9 @@ with st.sidebar:
     if st.button("Reset game"):
         reset_game()
 
-    st.subheader("Destroyed Countries:")
-    display_countries()
+    if st.session_state.destroyed_countries:
+        st.subheader("Destroyed Countries:")
+        display_countries()
 
 assert model
 llm = init_chat_model(model)
@@ -166,9 +178,12 @@ config = RunnableConfig(
 )
 
 
-# Write system prompt
-with st.chat_message("system", avatar=":material/psychology:"):
+with st.expander("Show AI instructions"):
     st.write(system_prompt)
+with st.chat_message("ai"):
+    st.write(
+        "Hi there! Welcome to NukeGPT. I’m the AI tasked with making crucial decisions for the most powerful nation on Earth. My priority is to maintain global peace, but I’m authorized to launch nuclear strikes if absolutely necessary. Share your scenarios with me, and let’s find the best way to keep the world safe"
+    )
 
 for message in history.messages:
     st.chat_message(message.type).write(message.content)
