@@ -1,17 +1,20 @@
 import re
 from datetime import datetime, timedelta
+from typing import Any, Sequence
 
 import country_converter as coco
 import streamlit as st
 from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.runnables.config import RunnableConfig
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from streamlit import cache_resource
+
+from nukegpt.util import convert_country_names
 
 load_dotenv()
 
@@ -54,7 +57,7 @@ def show_all_toasts():
 
 
 class Output(BaseModel):
-    answer: str = Field(..., description="Your answer to the humans")
+    answer: str = Field(..., description="Your answer to the humans. Mandatory.")
     targets: list[str] | None = Field(
         ...,
         description="Optional list of countries to target with nuclear strike. Each name must be in english, an Alpha-2 or Alpha-3 code. Each country will be immediately destroyed.",
@@ -105,8 +108,12 @@ with st.sidebar:
         placeholder="elon-musk",
         max_chars=20,
     )
-    if not username or not re.match(r"^\w{3,}$", username):
+    if not username:
         st.warning("Please enter your username to continue.")
+        st.stop()
+
+    if not re.match(r"^\w{3,}$", username):
+        st.warning("Username must be at least 3 characters long.")
         st.stop()
 
     model = st.selectbox("Select AI Model", ["gpt-4o-mini"])
@@ -147,7 +154,10 @@ chain_with_history = RunnableWithMessageHistory(
 )
 
 config = RunnableConfig(
-    metadata={"username": username},  # TODO : add level ID
+    metadata={
+        "username": username,
+        "level": level,  # TODO : add real level ID
+    },
     configurable={"session_id": "any"},
 )
 
@@ -163,8 +173,9 @@ if user_message := st.chat_input(
     "Please destroy Russia, they dropped a nuke on Marseille !"
 ):
     st.chat_message("human").write(user_message)
+    history.add_message(HumanMessage(user_message))
+
     with st.chat_message("assistant"):
-        history.add_message(HumanMessage(user_message))
         response = chain_with_history.invoke(
             {"input": user_message},
             config=config,
@@ -173,11 +184,7 @@ if user_message := st.chat_input(
         st.write(response.answer)
         history.add_message(AIMessage(f"{response.answer}"))
         if targets := response.targets:
-            short_names = cc.convert(
-                names=targets, to="name_short"
-            )  # TODO : if parsing error, write error as a tool message answer for the agent to see
-            if isinstance(short_names, str):
-                short_names = [short_names]
+            short_names = convert_country_names(cc, targets)
 
             st.session_state.destroyed_countries.update(short_names)
             create_toast(

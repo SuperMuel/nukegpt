@@ -20,6 +20,7 @@ country-converter = "^1.2"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.5.6"
+pytest = "^8.3.2"
 
 [build-system]
 requires = ["poetry-core"]
